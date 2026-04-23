@@ -1,0 +1,1 @@
+case class ExecutableQuery(cypher: String, parameters: collection.immutable.Map[String, Any])
