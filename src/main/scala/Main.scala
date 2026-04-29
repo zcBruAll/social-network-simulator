@@ -1,8 +1,8 @@
 import org.neo4j.driver.{AuthTokens, GraphDatabase, Session}
-import sns.Simulator
+import sns.{Simulator, Query}
 import scala.jdk.CollectionConverters._
 
-def handler(query: Simulator.Query): Option[Int] =
+def handler(query: sns.Query): Option[Int] =
   None
 
 @main def Main =
