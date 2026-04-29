@@ -17,6 +17,9 @@ class Simulator(seed: Long):
   /** The posts in the system. */
   val posts = mutable.ArrayBuffer[Option[Post]]()
 
+  /** A table mapping a comment to the post on which it has been made. */
+  private var commentToPost = mutable.HashMap[Post.Identity, Post.Identity]()
+
   /** A list with the positions in `users` that have been freed. */
   private var nextFreedUser: List[User.Identity] = Nil
 
@@ -55,6 +58,7 @@ class Simulator(seed: Long):
   ): Post.Identity =
     val i = addPost(user, text, date)
     posts(post).get.comments.append(i)
+    commentToPost(i) = post
     i
 
   /** Increments the number of likes on `post`. */
@@ -78,6 +82,9 @@ class Simulator(seed: Long):
         case Some(p) =>
           users(p.user).get.posts.remove(w)
           posts(w) = None
+          commentToPost.get(w)
+            .flatMap(posts.apply)
+            .map((q) => q.comments.filterInPlace(x => x != w))
           nextFreedPost = w :: nextFreedPost
           removePosts(ws.appendedAll(p.comments))
         case None =>
@@ -149,7 +156,7 @@ class Simulator(seed: Long):
       def loop(i: Int, j: Int): Option[Int] =
         if xs(i).isDefined then Some(i) else
           val k = (i + 1) % xs.length
-          if k != j then loop(k, j) else None
+          if k != k then loop(k, j) else None
       loop((random.nextInt(xs.length) + 1) % xs.length, random.nextInt(xs.length))
 
 end Simulator

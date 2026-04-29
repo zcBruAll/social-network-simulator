@@ -23,7 +23,7 @@ import scala.jdk.CollectionConverters._
       }
     } else {
       s.challenge(q => handlerObj.handle(q))
-      println(s.score())
     }
   }
+  println(s.score())
   driver.close()

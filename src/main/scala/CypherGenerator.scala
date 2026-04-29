@@ -12,7 +12,7 @@ object CypherGenerator {
       ExecutableQuery(
         """MATCH (u:USER {id: $user})
           |MERGE (p:POST {id: $id})
-          |ON CREATE SET p.text = $text, p.date = $date
+          |ON CREATE SET p.text = $text, p.date = $date, p.likes = 0
           |MERGE (u)-[:POSTED]->(p)""".stripMargin,
         Map("id" -> id, "user" -> user, "text" -> text, "date" -> date)
       )
@@ -22,7 +22,7 @@ object CypherGenerator {
         """MATCH (u:USER {id: $user})
           |MATCH (p:POST {id: $post})
           |MERGE (c:POST {id: $id})
-          |ON CREATE SET c.text = $text, c.date = $date
+          |ON CREATE SET c.text = $text, c.date = $date, c.likes = 0
           |MERGE (u)-[:COMMENTED]->(c)
           |MERGE (c)-[:ON]->(p)""".stripMargin,
         Map("id" -> id, "post" -> post, "user" -> user, "text" -> text, "date" -> date)
@@ -30,10 +30,9 @@ object CypherGenerator {
 
     case GraphEvent.Like(post, user) =>
       ExecutableQuery(
-        """MATCH (u:USER {id: $user})
-          |MATCH (p:POST {id: $post})
-          |MERGE (u)-[:LIKED]->(p)""".stripMargin,
-        Map("post" -> post, "user" -> user)
+        """MATCH (p:POST {id: $post})
+          |SET p.likes = p.likes + 1""".stripMargin,
+        Map("post" -> post)
       )
 
     case GraphEvent.UpdatePost(id, text) =>
@@ -56,7 +55,7 @@ object CypherGenerator {
         """MATCH (u:USER {id: $id})
           |OPTIONAL MATCH (u)-[:POSTED|COMMENTED]->(authored:POST)
           |OPTIONAL MATCH (authored)<-[:ON*0..]-(tree:POST)
-          |DETACH DELETE u, tree""".stripMargin,
+          |DETACH DELETE u, authored, tree""".stripMargin,
         Map("id" -> id)
       )
   }

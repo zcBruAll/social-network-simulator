@@ -15,8 +15,6 @@ class QueryHandler(driver: Driver) {
 
     val cypher = s"MATCH (n:$label) WHERE $where RETURN count(n) AS result"
 
-    println(cypher)
-
     val session = driver.session()
     try {
       val result = session.run(cypher, params.asJava)
@@ -72,7 +70,7 @@ class QueryHandler(driver: Driver) {
           case Condition.LessThan(n) => n
         }
 
-        (s"COUNT { MATCH ()-[:LIKED]->($alias) } $op $$limit", Map("limit" -> threshold))
+        (s"$alias.likes $op $$limit", Map("limit" -> threshold))
     }
   }
 }
