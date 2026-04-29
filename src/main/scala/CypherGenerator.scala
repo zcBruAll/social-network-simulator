@@ -21,7 +21,7 @@ object CypherGenerator {
       ExecutableQuery(
         """MATCH (u:USER {id: $user})
           |MATCH (p:POST {id: $post})
-          |MERGE (c:COMMENT {id: $id})
+          |MERGE (c:POST {id: $id})
           |ON CREATE SET c.text = $text, c.date = $date
           |MERGE (u)-[:COMMENTED]->(c)
           |MERGE (c)-[:ON]->(p)""".stripMargin,
@@ -46,7 +46,7 @@ object CypherGenerator {
     case GraphEvent.DeletePost(id) =>
       ExecutableQuery(
         """MATCH (p:POST {id: $id})
-          |OPTIONAL MATCH (c:COMMENT)-[:ON]->(p)
+          |OPTIONAL MATCH (p)<-[:ON*]-(c:POST)
           |DETACH DELETE p, c""".stripMargin,
         Map("id" -> id)
       )
@@ -54,7 +54,9 @@ object CypherGenerator {
     case GraphEvent.DeleteUser(id) =>
       ExecutableQuery(
         """MATCH (u:USER {id: $id})
-          |DETACH DELETE u""".stripMargin,
+          |OPTIONAL MATCH (u)-[:POSTED|COMMENTED]->(authored:POST)
+          |OPTIONAL MATCH (authored)<-[:ON*0..]-(tree:POST)
+          |DETACH DELETE u, tree""".stripMargin,
         Map("id" -> id)
       )
   }

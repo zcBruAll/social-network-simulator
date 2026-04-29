@@ -1,9 +1,6 @@
 import org.neo4j.driver.{AuthTokens, GraphDatabase, Session}
-import sns.{Simulator, Query}
+import sns.Simulator
 import scala.jdk.CollectionConverters._
-
-def handler(query: sns.Query): Option[Int] =
-  None
 
 @main def Main =
   val s = Simulator(seed = 1337)
@@ -12,17 +9,21 @@ def handler(query: sns.Query): Option[Int] =
     "neo4j://localhost:7687", AuthTokens.basic("neo4j", "beydb-beepr"))
   driver.verifyConnectivity()
 
-  for i <- 0 until 130 do {
-    val payload = s.randomEvent()
-    EventProcessor.processEventString(payload) match {
-    case Some(cypherQuery) =>
-      println("Successfully generated query:")
-      println(cypherQuery)
+  val handlerObj = new QueryHandler(driver)
 
-      val result = driver.executableQuery(cypherQuery.cypher).withParameters(cypherQuery.parameters.asJava).execute
-      println(result.summary())
-    case None =>
-      println("Could not generate query.")
+  for i <- 0 until 676 do {
+    if ((i & 0b11) != 0b11) {
+      val payload = s.randomEvent()
+      EventProcessor.processEventString(payload) match {
+        case Some(cypherQuery) =>
+          val result = driver.executableQuery(cypherQuery.cypher).withParameters(cypherQuery.parameters.asJava).execute
+          //println(result.summary())
+        case None =>
+          println("Could not generate query.")
+      }
+    } else {
+      s.challenge(q => handlerObj.handle(q))
+      println(s.score())
     }
   }
   driver.close()

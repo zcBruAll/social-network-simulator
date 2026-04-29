@@ -149,7 +149,7 @@ class Simulator(seed: Long):
       def loop(i: Int, j: Int): Option[Int] =
         if xs(i).isDefined then Some(i) else
           val k = (i + 1) % xs.length
-          if k != k then loop(k, j) else None
+          if k != j then loop(k, j) else None
       loop((random.nextInt(xs.length) + 1) % xs.length, random.nextInt(xs.length))
 
 end Simulator
