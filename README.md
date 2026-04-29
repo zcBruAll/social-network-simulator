@@ -1,5 +1,11 @@
 # Social Network Simulator
 
+## Students
+- Allan Brunner
+- Valentin Monod
+- Axel Hall
+- James Zeiger
+
 ## Event types
 - new-user (id, first, last)
   - ```neo4j
